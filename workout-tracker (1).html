@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Workout Tracker</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css" />
+<style>
+/* ── Reset & base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f0f11; color: #e8e8e8; min-height: 100vh; padding: 24px 16px 60px; }
+
+/* ── Layout ── */
+.app { max-width: 560px; margin: 0 auto; }
+h1 { font-size: 22px; font-weight: 500; color: #fff; margin-bottom: 4px; }
+.sub { font-size: 14px; color: #666; margin-bottom: 20px; }
+
+/* ── Cards ── */
+.card { background: #1a1a1d; border: 0.5px solid #2e2e32; border-radius: 14px; padding: 18px 20px; margin-bottom: 14px; }
+.card-title { font-size: 11px; font-weight: 500; color: #666; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 14px; }
+
+/* ── Tabs ── */
+.tab-row { display: flex; gap: 6px; margin-bottom: 18px; flex-wrap: wrap; }
+.tab { background: #1a1a1d; border: 0.5px solid #2e2e32; border-radius: 8px; padding: 7px 13px; font-size: 13px; color: #777; cursor: pointer; font-family: inherit; }
+.tab.active { background: #5e5ce6; color: #fff; border-color: #5e5ce6; }
+.section { display: none; }
+.section.active { display: block; }
+
+/* ── Forms ── */
+input[type="text"], input[type="number"], select, textarea {
+  background: #242428; border: 0.5px solid #3a3a3e; border-radius: 8px; color: #e8e8e8;
+  font-size: 14px; padding: 8px 12px; width: 100%; outline: none; font-family: inherit;
+}
+input:focus, select:focus, textarea:focus { border-color: #5e5ce6; }
+select { cursor: pointer; }
+textarea { resize: vertical; min-height: 60px; }
+
+/* ── Buttons ── */
+.btn { background: #5e5ce6; color: #fff; border: none; border-radius: 8px; padding: 9px 18px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; }
+.btn:hover { background: #7b79f0; }
+.btn-sm { padding: 5px 12px; font-size: 13px; border-radius: 6px; }
+.btn-ghost { background: transparent; color: #777; border: 0.5px solid #3a3a3e; }
+.btn-ghost:hover { background: #242428; color: #e8e8e8; }
+.btn-danger { background: transparent; color: #ff5f5f; border: 0.5px solid #3a3a3e; }
+.btn-danger:hover { background: #2a1414; }
+.row { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; }
+
+/* ── Exercise checkboxes ── */
+.check-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid #242428; }
+.check-item:last-child { border-bottom: none; }
+.check-item input[type="checkbox"] { width: 18px; height: 18px; accent-color: #5e5ce6; cursor: pointer; flex-shrink: 0; margin-top: 2px; }
+.check-label { font-size: 15px; cursor: pointer; transition: color 0.15s; }
+.check-label.done { text-decoration: line-through; color: #444; }
+.ex-meta { font-size: 12px; color: #555; margin-top: 3px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+/* ── Tags / badges ── */
+.tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; background: #242428; color: #777; }
+.tag.chest { background: #1a2535; color: #6ab0f5; }
+.tag.back { background: #1a2d22; color: #6ad98a; }
+.tag.legs { background: #2d2118; color: #f5a85e; }
+.tag.shoulders { background: #231d35; color: #b07af0; }
+.tag.arms { background: #2d1a22; color: #f07a9a; }
+.tag.core { background: #1a2d2d; color: #5ecfcf; }
+.tag.cardio { background: #2d1a1a; color: #f07070; }
+
+.pr-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 2px 8px; border-radius: 20px; background: #2d2510; color: #f5c842; border: 0.5px solid #4a3d18; font-weight: 500; }
+.new-badge { background: #1a2d1a; color: #6ad98a; border-color: #1e4a1e; }
+.streak-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; padding: 4px 12px; border-radius: 20px; background: #2d2010; color: #f5a050; border: 0.5px solid #4a3218; font-weight: 500; }
+
+/* ── Progress bars ── */
+.progress-bar { height: 6px; background: #242428; border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: #5e5ce6; border-radius: 3px; transition: width 0.4s; }
+.progress-fill.gold { background: linear-gradient(90deg, #c8a020, #f5c842); }
+.progress-fill.green { background: #4CAF50; }
+.progress-label { font-size: 12px; color: #555; margin-top: 5px; }
+
+/* ── Stats grid ── */
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.stat { background: #242428; border-radius: 10px; padding: 12px; text-align: center; }
+.stat-num { font-size: 24px; font-weight: 500; color: #fff; }
+.stat-label { font-size: 11px; color: #555; margin-top: 2px; }
+.stat2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ── Log entries ── */
+.log-entry { padding: 12px 0; border-bottom: 0.5px solid #242428; }
+.log-entry:last-child { border-bottom: none; }
+.log-date { font-size: 12px; color: #666; margin-bottom: 4px; }
+.log-exercises { font-size: 14px; color: #aaa; }
+.log-note { font-size: 13px; color: #555; margin-top: 4px; font-style: italic; }
+
+/* ── Recap ── */
+.recap-header { text-align: center; padding: 20px 0 10px; }
+.recap-title { font-size: 20px; font-weight: 500; color: #fff; }
+.recap-sub { font-size: 13px; color: #666; margin-top: 4px; }
+.recap-big { font-size: 36px; font-weight: 500; color: #fff; line-height: 1; }
+.recap-label { font-size: 12px; color: #555; margin-top: 4px; }
+.vs-row { display: flex; align-items: center; gap: 8px; font-size: 13px; margin: 6px 0; }
+.vs-up { color: #6ad98a; }
+.vs-down { color: #f07070; }
+.vs-same { color: #777; }
+.pr-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 0.5px solid #242428; }
+.pr-row:last-child { border-bottom: none; }
+.pr-row-name { font-size: 14px; }
+.pr-row-val { font-size: 13px; color: #f5c842; font-weight: 500; }
+.chart-bar-wrap { margin: 10px 0; }
+.chart-bar-label { display: flex; justify-content: space-between; font-size: 12px; color: #666; margin-bottom: 4px; }
+.improve-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 0.5px solid #242428; }
+.improve-row:last-child { border-bottom: none; }
+
+/* ── Sets input in today ── */
+.sets-section { background: #1e1e22; border-radius: 8px; padding: 10px 12px; margin-top: 6px; }
+.sets-row { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+.sets-row:last-child { margin-bottom: 0; }
+.sets-row input { background: #2a2a2e; border: 0.5px solid #3a3a3e; border-radius: 6px; color: #e8e8e8; font-size: 13px; padding: 5px 8px; width: 70px; font-family: inherit; outline: none; }
+.sets-row input:focus { border-color: #5e5ce6; }
+.sets-label { font-size: 12px; color: #555; width: 36px; }
+
+.empty { text-align: center; color: #444; font-size: 14px; padding: 24px 0; }
+.divider { border: none; border-top: 0.5px solid #242428; margin: 16px 0; }
+.highlight-card { background: #1e2d1e; border: 0.5px solid #2a4a2a; border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
+.highlight-card.gold { background: #2a2010; border-color: #4a3a18; }
+.flex-end { display: flex; justify-content: flex-end; gap: 8px; }
+.section-subtitle { font-size: 13px; color: #666; margin: -8px 0 14px; }
+
+/* ── Intro splash screen ── */
+#intro-screen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #0f0f11;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 16px;
+  transition: opacity 0.6s ease;
+}
+#intro-screen.fade-out { opacity: 0; pointer-events: none; }
+.intro-icon { font-size: 56px; color: #5e5ce6; animation: intro-pulse 1.6s ease infinite; }
+@keyframes intro-pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(1.08);opacity:0.85} }
+.intro-title { font-size: 28px; font-weight: 600; color: #fff; letter-spacing: -0.3px; }
+.intro-sub { font-size: 15px; color: #666; letter-spacing: 0.04em; }
+.intro-dot-row { display: flex; gap: 8px; margin-top: 8px; }
+.intro-dot { width: 6px; height: 6px; border-radius: 50%; background: #5e5ce6; opacity: 0.3; animation: dot-blink 1.2s ease infinite; }
+.intro-dot:nth-child(2) { animation-delay: 0.2s; }
+.intro-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dot-blink { 0%,80%,100%{opacity:0.2} 40%{opacity:1} }
+
+/* ── Bottom nav ── */
+#bottom-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(15,15,17,0.96);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-top: 0.5px solid #2e2e32;
+  display: flex; align-items: stretch;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 10px 4px 8px; gap: 4px; cursor: pointer; border: none; background: transparent;
+  color: #555; font-size: 10px; font-family: inherit; letter-spacing: 0.02em;
+  transition: color 0.15s;
+}
+.nav-item:hover { color: #999; }
+.nav-item.active { color: #5e5ce6; }
+.nav-item i { font-size: 22px; line-height: 1; }
+.nav-item span { font-size: 10px; }
+
+/* ── Views (top-level navigation) ── */
+.view { display: none; }
+.view.active { display: block; }
+
+/* ── More hub grid ── */
+.more-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.more-card {
+  background: #1a1a1d; border: 0.5px solid #2e2e32; border-radius: 14px;
+  padding: 20px 16px; cursor: pointer; text-align: center;
+  transition: background 0.15s, border-color 0.15s;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+.more-card:hover { background: #222226; border-color: #5e5ce6; }
+.more-card i { font-size: 28px; color: #5e5ce6; }
+.more-card-label { font-size: 14px; color: #ccc; font-weight: 500; }
+.more-card-sub { font-size: 11px; color: #555; margin-top: -4px; }
+
+/* ── View header ── */
+.view-header { padding: 8px 0 20px; }
+.view-header h2 { font-size: 22px; font-weight: 600; color: #fff; }
+.view-header p { font-size: 13px; color: #555; margin-top: 3px; }
+
+/* body padding accounts for fixed bottom nav */
+body { padding-bottom: 80px !important; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     INTRO SPLASH SCREEN
+     Shown only on first ever visit. Fades out
+     after 2.8s then is removed from DOM.
+════════════════════════════════════════════ -->
+<div id="intro-screen">
+  <i class="ti ti-barbell intro-icon"></i>
+  <div class="intro-title">Workout Tracker</div>
+  <div class="intro-sub">Track. Improve. Repeat.</div>
+  <div class="intro-dot-row">
+    <div class="intro-dot"></div>
+    <div class="intro-dot"></div>
+    <div class="intro-dot"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     BOTTOM NAVIGATION BAR
+════════════════════════════════════════════ -->
+<nav id="bottom-nav">
+  <button class="nav-item active" id="nav-today" onclick="switchView('today')">
+    <i class="ti ti-home"></i><span>Today</span>
+  </button>
+  <button class="nav-item" id="nav-workout" onclick="switchView('workout')">
+    <i class="ti ti-barbell"></i><span>Workout</span>
+  </button>
+  <button class="nav-item" id="nav-progress" onclick="switchView('progress')">
+    <i class="ti ti-chart-line"></i><span>Progress</span>
+  </button>
+  <button class="nav-item" id="nav-more" onclick="switchView('more')">
+    <i class="ti ti-dots"></i><span>More</span>
+  </button>
+</nav>
+
+<!-- ═══════════════════════════════════════════
+     APP SHELL
+════════════════════════════════════════════ -->
+<div class="app">
+
+  <!-- ══════════════════════════════
+       VIEW: TODAY
+       Main dashboard — today's session
+  ══════════════════════════════ -->
+  <div id="view-today" class="view active">
+    <div class="view-header">
+      <h2><i class="ti ti-home" style="color:#5e5ce6;margin-right:8px;font-size:20px;vertical-align:-2px;"></i>Today</h2>
+      <p id="today-date-sub"></p>
+    </div>
+
+    <!-- TODAY section content (existing, unchanged) -->
+    <div id="tab-today" class="section active">
+    <div class="card">
+      <div class="card-title">Today's workout</div>
+      <div class="row">
+        <select id="workout-template" style="flex:1;" onchange="loadTemplate()">
+          <option value="">-- Choose a template --</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="switchView('more');setTimeout(()=>switchMoreSection('settings'),50);" title="Manage templates"><i class="ti ti-settings"></i></button>
+      </div>
+      <div id="exercise-list"></div>
+      <div id="no-exercises" class="empty">Select a template or add exercises below</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Add exercise to today</div>
+      <div class="row">
+        <select id="add-exercise-select" style="flex:1;"><option value="">-- Pick exercise --</option></select>
+        <button class="btn btn-sm" onclick="addToToday()"><i class="ti ti-plus"></i> Add</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Notes</div>
+      <textarea id="workout-notes" placeholder="How did you feel? Any PRs?"></textarea>
+    </div>
+    <div class="row" style="justify-content:flex-end;gap:8px;margin-top:4px;">
+      <button class="btn btn-ghost btn-sm" onclick="clearToday()">Clear</button>
+      <button class="btn" onclick="saveWorkout()"><i class="ti ti-check"></i> Save workout</button>
+    </div>
+  </div><!-- /tab-today -->
+  </div><!-- /view-today -->
+
+  <!-- ══════════════════════════════
+       VIEW: WORKOUT
+       Full workout logging system
+  ══════════════════════════════ -->
+  <div id="view-workout" class="view">
+    <div class="view-header">
+      <h2><i class="ti ti-barbell" style="color:#5e5ce6;margin-right:8px;font-size:20px;vertical-align:-2px;"></i>Workout Log</h2>
+      <p>Your full workout history</p>
+    </div>
+
+  <!-- HISTORY -->
+  <div id="tab-log" class="section active">
+    <div class="card">
+      <div class="card-title">Workout history</div>
+      <div id="log-list"></div>
+    </div>
+  </div><!-- /tab-log -->
+  </div><!-- /view-workout -->
+
+  <!-- ══════════════════════════════
+       VIEW: PROGRESS
+       PRs, Recap, Stats
+  ══════════════════════════════ -->
+  <div id="view-progress" class="view">
+    <div class="view-header">
+      <h2><i class="ti ti-chart-line" style="color:#5e5ce6;margin-right:8px;font-size:20px;vertical-align:-2px;"></i>Progress</h2>
+      <p>PRs, weekly & monthly recap, stats</p>
+    </div>
+
+    <!-- Inner sub-tabs for progress view -->
+    <div class="tab-row" id="progress-tab-row">
+      <button class="tab active" onclick="switchProgressTab('prs',this)"><i class="ti ti-trophy"></i> PRs</button>
+      <button class="tab" onclick="switchProgressTab('recap',this)"><i class="ti ti-chart-line"></i> Recap</button>
+      <button class="tab" onclick="switchProgressTab('stats',this)"><i class="ti ti-chart-bar"></i> Stats</button>
+    </div>
+
+  <!-- PR TAB -->
+  <div id="tab-prs" class="section active">
+    <div class="card">
+      <div class="card-title">Personal records</div>
+      <p class="section-subtitle">Your best lifts across all workouts</p>
+      <div class="row">
+        <select id="pr-filter" style="flex:1;" onchange="renderPRs()">
+          <option value="all">All exercises</option>
+        </select>
+      </div>
+      <div id="pr-list"></div>
+    </div>
+    <div class="card" id="pr-history-card" style="display:none;">
+      <div class="card-title" id="pr-history-title">PR history</div>
+      <div id="pr-history-list"></div>
+    </div>
+  </div>
+
+  <!-- RECAP TAB -->
+  <div id="tab-recap" class="section">
+    <div class="tab-row" style="margin-bottom:16px;">
+      <button class="tab active" id="recap-week-btn" onclick="switchRecap('weekly',this)">Weekly</button>
+      <button class="tab" id="recap-month-btn" onclick="switchRecap('monthly',this)">Monthly</button>
+    </div>
+    <div id="recap-weekly"></div>
+    <div id="recap-monthly" style="display:none;"></div>
+  </div>
+
+  <!-- STATS -->
+  <div id="tab-stats" class="section">
+    <div class="card">
+      <div class="card-title">Overall stats</div>
+      <div class="stats-grid" id="stats-grid"></div>
+      <div style="margin-top:20px;" id="muscle-section"></div>
+    </div>
+  </div><!-- /tab-stats -->
+  </div><!-- /view-progress -->
+
+  <!-- ══════════════════════════════
+       VIEW: MORE
+       Hub for secondary features:
+       Exercises, Settings, and quick
+       links to History / Stats
+  ══════════════════════════════ -->
+  <div id="view-more" class="view">
+    <div class="view-header">
+      <h2><i class="ti ti-dots" style="color:#5e5ce6;margin-right:8px;font-size:20px;vertical-align:-2px;"></i>More</h2>
+      <p>Exercises, settings &amp; extras</p>
+    </div>
+
+    <!-- Hub grid — tapping any card reveals that section below -->
+    <div class="more-grid">
+      <div class="more-card" onclick="switchMoreSection('exercises')">
+        <i class="ti ti-list"></i>
+        <div class="more-card-label">Exercises</div>
+        <div class="more-card-sub">Browse &amp; add</div>
+      </div>
+      <div class="more-card" onclick="switchMoreSection('settings')">
+        <i class="ti ti-settings"></i>
+        <div class="more-card-label">Settings</div>
+        <div class="more-card-sub">Templates</div>
+      </div>
+      <div class="more-card" onclick="switchView('workout')">
+        <i class="ti ti-calendar"></i>
+        <div class="more-card-label">History</div>
+        <div class="more-card-sub">Past workouts</div>
+      </div>
+      <div class="more-card" onclick="switchView('progress')">
+        <i class="ti ti-chart-bar"></i>
+        <div class="more-card-label">Stats</div>
+        <div class="more-card-sub">Your numbers</div>
+      </div>
+    </div>
+
+    <!-- More sub-tabs -->
+    <div class="tab-row" id="more-tab-row">
+      <button class="tab active" id="more-tab-exercises" onclick="switchMoreSection('exercises')"><i class="ti ti-list"></i> Exercises</button>
+      <button class="tab" id="more-tab-settings" onclick="switchMoreSection('settings')"><i class="ti ti-settings"></i> Settings</button>
+    </div>
+
+  <!-- EXERCISES -->
+  <div id="tab-exercises" class="section active">
+    <div class="card">
+      <div class="card-title">Add custom exercise</div>
+      <div class="row">
+        <input type="text" id="new-ex-name" placeholder="Exercise name" style="flex:2;" />
+        <select id="new-ex-muscle" style="flex:1;">
+          <option value="chest">Chest</option>
+          <option value="back">Back</option>
+          <option value="legs">Legs</option>
+          <option value="shoulders">Shoulders</option>
+          <option value="arms">Arms</option>
+          <option value="core">Core</option>
+          <option value="cardio">Cardio</option>
+        </select>
+        <button class="btn btn-sm" onclick="addCustomExercise()"><i class="ti ti-plus"></i></button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">All exercises</div>
+      <div id="exercise-library"></div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="tab-settings" class="section">
+
+    <!-- Step 1: Name the template -->
+    <div class="card" id="template-editor-card">
+      <div class="card-title" id="editor-card-title">
+        <i class="ti ti-template" style="font-size:13px;margin-right:4px;"></i>
+        New template
+      </div>
+      <input type="hidden" id="editing-template-id" value="" />
+
+      <div style="margin-bottom:14px;">
+        <div style="font-size:12px;color:#666;margin-bottom:6px;">Template name</div>
+        <input type="text" id="tpl-name" placeholder="e.g. Push day, Upper body, Morning run…" />
+      </div>
+
+      <!-- Step 2: Add exercises -->
+      <div style="margin-bottom:14px;">
+        <div style="font-size:12px;color:#666;margin-bottom:8px;">Exercises in this template</div>
+        <div id="tpl-exercise-list"></div>
+        <div class="row" style="margin-top:8px;">
+          <select id="tpl-add-exercise" style="flex:1;"><option value="">-- Pick an exercise to add --</option></select>
+          <button class="btn btn-ghost btn-sm" onclick="tplAddExercise()"><i class="ti ti-plus"></i> Add</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;justify-content:flex-end;padding-top:10px;border-top:0.5px solid #2e2e32;">
+        <button class="btn btn-ghost btn-sm" onclick="tplCancelEdit()">Cancel</button>
+        <button class="btn btn-sm" onclick="tplSave()"><i class="ti ti-check"></i> Save template</button>
+      </div>
+    </div>
+
+    <!-- Saved templates list -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div class="card-title" style="margin-bottom:0;">Saved templates</div>
+        <button class="btn btn-sm" onclick="tplStartNew()"><i class="ti ti-plus"></i> New template</button>
+      </div>
+      <div id="settings-template-list"></div>
+    </div>
+  </div><!-- /tab-settings -->
+  </div><!-- /view-more -->
+
+</div><!-- /app -->
+
+<script>
+// ─────────────────────────────────────────────
+// DATA — default exercises and workout templates
+// ─────────────────────────────────────────────
+const DEFAULT_EXERCISES = [
+  {id:'bench',name:'Bench press',muscle:'chest'},
+  {id:'incline',name:'Incline dumbbell press',muscle:'chest'},
+  {id:'cable-fly',name:'Cable fly',muscle:'chest'},
+  {id:'pushup',name:'Push-up',muscle:'chest'},
+  {id:'ohp',name:'Overhead press',muscle:'shoulders'},
+  {id:'lat-raise',name:'Lateral raise',muscle:'shoulders'},
+  {id:'front-raise',name:'Front raise',muscle:'shoulders'},
+  {id:'tricep-push',name:'Tricep pushdown',muscle:'arms'},
+  {id:'skullcrusher',name:'Skullcrusher',muscle:'arms'},
+  {id:'pullup',name:'Pull-up',muscle:'back'},
+  {id:'row',name:'Barbell row',muscle:'back'},
+  {id:'lat-pull',name:'Lat pulldown',muscle:'back'},
+  {id:'cable-row',name:'Cable row',muscle:'back'},
+  {id:'curl',name:'Bicep curl',muscle:'arms'},
+  {id:'hammer',name:'Hammer curl',muscle:'arms'},
+  {id:'squat',name:'Squat',muscle:'legs'},
+  {id:'rdl',name:'Romanian deadlift',muscle:'legs'},
+  {id:'legpress',name:'Leg press',muscle:'legs'},
+  {id:'lunge',name:'Lunge',muscle:'legs'},
+  {id:'calfraise',name:'Calf raise',muscle:'legs'},
+  {id:'plank',name:'Plank',muscle:'core'},
+  {id:'crunch',name:'Crunch',muscle:'core'},
+  {id:'run',name:'Running',muscle:'cardio'},
+  {id:'bike',name:'Cycling',muscle:'cardio'},
+];
+
+// ─────────────────────────────────────────────
+// DEFAULT TEMPLATES — used only on first ever load.
+// After that, templates are stored in localStorage under 'wt_templates'
+// and users can create/edit/delete them in the Settings tab.
+// ─────────────────────────────────────────────
+const DEFAULT_TEMPLATES = [
+  { id: 'push',     name: 'Push day',  exercises: ['bench','incline','cable-fly','ohp','lat-raise','tricep-push'] },
+  { id: 'pull',     name: 'Pull day',  exercises: ['pullup','row','lat-pull','cable-row','curl','hammer'] },
+  { id: 'legs',     name: 'Leg day',   exercises: ['squat','rdl','legpress','lunge','calfraise'] },
+  { id: 'fullbody', name: 'Full body', exercises: ['squat','bench','row','ohp','curl','plank'] },
+  { id: 'cardio',   name: 'Cardio',    exercises: ['run','bike','plank','crunch'] },
+];
+
+// ─────────────────────────────────────────────
+// STORAGE HELPERS
+// These functions save and load data from the browser's localStorage.
+// localStorage keeps data even when you close the browser.
+// ─────────────────────────────────────────────
+function load(key, def) {
+  try { return JSON.parse(localStorage.getItem(key)) || def; } catch { return def; }
+}
+function save(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+
+// ─────────────────────────────────────────────
+// APP STATE — data loaded from localStorage on startup
+// ─────────────────────────────────────────────
+let exercises    = load('wt_exercises', DEFAULT_EXERCISES);
+let todayChecked = load('wt_today_checked', []);  // exercise IDs in today's workout
+let workoutLog   = load('wt_log', []);             // array of saved workout objects
+let prStore      = load('wt_prs', {});             // { exerciseId: [{date, weight, reps, e1rm}] }
+let userTemplates = load('wt_templates', DEFAULT_TEMPLATES); // user-created templates
+
+// ─────────────────────────────────────────────
+// TAB SWITCHING (legacy — kept for switchRecap compatibility)
+// Only used internally now; view navigation uses switchView()
+// ─────────────────────────────────────────────
+function switchTab(name, el) {
+  // This is now only called for the settings gear shortcut from Today
+  // Route it to the correct view + section
+  if (name === 'settings') {
+    switchView('more');
+    setTimeout(() => switchMoreSection('settings'), 50);
+    return;
+  }
+  if (name === 'exercises') {
+    switchView('more');
+    setTimeout(() => switchMoreSection('exercises'), 50);
+    return;
+  }
+  if (name === 'log') { switchView('workout'); return; }
+  if (name === 'prs' || name === 'recap' || name === 'stats') {
+    switchView('progress');
+    setTimeout(() => switchProgressTab(name, document.querySelector(`#progress-tab-row .tab[onclick*="${name}"]`)), 50);
+    return;
+  }
+  if (name === 'today') { switchView('today'); return; }
+}
+
+function switchRecap(mode, el) {
+  document.querySelectorAll('#tab-recap > .tab-row > .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('recap-weekly').style.display  = mode === 'weekly'  ? 'block' : 'none';
+  document.getElementById('recap-monthly').style.display = mode === 'monthly' ? 'block' : 'none';
+  if (mode === 'monthly') renderMonthlyRecap();
+}
+
+// ─────────────────────────────────────────────
+// TODAY TAB — exercise list, checkboxes, sets/reps input
+// ─────────────────────────────────────────────
+function renderToday() {
+  populateExerciseSelect();
+  const list  = document.getElementById('exercise-list');
+  const empty = document.getElementById('no-exercises');
+  if (!todayChecked.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  const done = todayChecked.filter(id => load('wt_checked_' + id, false)).length;
+  const pct  = Math.round((done / todayChecked.length) * 100);
+
+  list.innerHTML = todayChecked.map(id => {
+    const ex = exercises.find(e => e.id === id);
+    if (!ex) return '';
+    const checked  = load('wt_checked_' + id, false);
+    const sets     = load('wt_sets_' + id, [{weight:'',reps:''}]);
+    const prForEx  = (prStore[id] || []);
+    const topPR    = prForEx.length ? prForEx.reduce((b,x) => x.e1rm > b.e1rm ? x : b) : null;
+    const prHint   = topPR ? `PR: ${topPR.weight}kg × ${topPR.reps}` : 'No PR yet';
+
+    const setsHTML = sets.map((s, i) => `
+      <div class="sets-row">
+        <span class="sets-label">Set ${i+1}</span>
+        <input type="number" placeholder="kg" value="${s.weight}" min="0" step="0.5"
+          onchange="updateSet('${id}',${i},'weight',this.value)" style="width:65px;" />
+        <input type="number" placeholder="reps" value="${s.reps}" min="0"
+          onchange="updateSet('${id}',${i},'reps',this.value)" style="width:65px;" />
+        ${i > 0 ? `<button class="btn btn-ghost btn-sm" onclick="removeSet('${id}',${i})" style="padding:4px 8px;"><i class="ti ti-x"></i></button>` : ''}
+      </div>`).join('');
+
+    return `<div class="check-item" style="flex-direction:column;align-items:stretch;">
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <input type="checkbox" id="chk-${id}" ${checked ? 'checked' : ''} onchange="toggleCheck('${id}')" style="margin-top:3px;">
+        <div style="flex:1;">
+          <label class="check-label ${checked ? 'done' : ''}" for="chk-${id}">${ex.name}</label>
+          <div class="ex-meta">
+            <span class="tag ${ex.muscle}">${ex.muscle}</span>
+            <span style="color:#555;">${prHint}</span>
+          </div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="removeFromToday('${id}')" style="padding:4px 8px;flex-shrink:0;"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="sets-section">
+        ${setsHTML}
+        <button class="btn btn-ghost btn-sm" onclick="addSet('${id}')" style="margin-top:6px;font-size:12px;"><i class="ti ti-plus"></i> Add set</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  list.innerHTML += `
+    <div style="margin-top:12px;">
+      <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+      <p class="progress-label">${done} of ${todayChecked.length} done · ${pct}%</p>
+    </div>`;
+}
+
+function addSet(id) {
+  const sets = load('wt_sets_' + id, [{weight:'',reps:''}]);
+  sets.push({weight:'',reps:''});
+  save('wt_sets_' + id, sets);
+  renderToday();
+}
+
+function removeSet(id, idx) {
+  const sets = load('wt_sets_' + id, [{weight:'',reps:''}]);
+  sets.splice(idx, 1);
+  save('wt_sets_' + id, sets);
+  renderToday();
+}
+
+function updateSet(id, idx, field, val) {
+  const sets = load('wt_sets_' + id, [{weight:'',reps:''}]);
+  sets[idx][field] = val;
+  save('wt_sets_' + id, sets);
+}
+
+function toggleCheck(id) {
+  save('wt_checked_' + id, document.getElementById('chk-' + id).checked);
+  renderToday();
+}
+
+function removeFromToday(id) {
+  todayChecked = todayChecked.filter(x => x !== id);
+  save('wt_today_checked', todayChecked);
+  renderToday();
+}
+
+function loadTemplate() {
+  const sel = document.getElementById('workout-template');
+  const id  = sel.value;
+  if (!id) return;
+  const tpl = userTemplates.find(t => t.id === id);
+  if (!tpl) return;
+  const ids = tpl.exercises || [];
+  todayChecked = [...new Set([...todayChecked, ...ids])];
+  save('wt_today_checked', todayChecked);
+  ids.forEach(exId => { save('wt_checked_' + exId, false); save('wt_sets_' + exId, [{weight:'',reps:''}]); });
+  renderToday();
+}
+
+function addToToday() {
+  const sel = document.getElementById('add-exercise-select');
+  const id  = sel.value;
+  if (!id) return;
+  if (!todayChecked.includes(id)) {
+    todayChecked.push(id);
+    save('wt_today_checked', todayChecked);
+    save('wt_checked_' + id, false);
+    save('wt_sets_' + id, [{weight:'',reps:''}]);
+  }
+  sel.value = '';
+  renderToday();
+}
+
+function clearToday() {
+  todayChecked = []; save('wt_today_checked', []);
+  document.getElementById('workout-notes').value = '';
+  document.getElementById('workout-template').value = '';
+  renderToday();
+}
+
+// ─────────────────────────────────────────────
+// SAVE WORKOUT — collects all data, detects PRs, saves log entry
+// This is the core function that ties everything together.
+// ─────────────────────────────────────────────
+function saveWorkout() {
+  if (!todayChecked.length) { alert('No exercises added yet!'); return; }
+
+  const startTime = load('wt_session_start', Date.now());
+  const durationMins = Math.round((Date.now() - startTime) / 60000) || 0;
+
+  // Collect sets for each exercise
+  const exerciseSets = {};
+  let totalVolume = 0; // total weight lifted = weight × reps across all sets
+  const newPRs = [];
+
+  todayChecked.forEach(id => {
+    const sets = load('wt_sets_' + id, []);
+    const validSets = sets.filter(s => s.weight && s.reps);
+    exerciseSets[id] = validSets;
+    validSets.forEach(s => { totalVolume += parseFloat(s.weight) * parseInt(s.reps); });
+
+    // PR detection: for each set, check if it beats stored records
+    validSets.forEach(s => {
+      const w = parseFloat(s.weight), r = parseInt(s.reps);
+      if (!w || !r) return;
+      // Epley formula: estimated 1 rep max = weight × (1 + reps/30)
+      const e1rm = Math.round(w * (1 + r / 30) * 10) / 10;
+      const history = prStore[id] || [];
+      const best = history.length
+        ? history.reduce((b, x) => x.e1rm > b.e1rm ? x : b)
+        : null;
+
+      if (!best || e1rm > best.e1rm) {
+        // New PR!
+        if (!prStore[id]) prStore[id] = [];
+        prStore[id].push({ date: new Date().toISOString(), weight: w, reps: r, e1rm });
+        save('wt_prs', prStore);
+        newPRs.push(id);
+      }
+    });
+  });
+
+  const completed = todayChecked.filter(id => load('wt_checked_' + id, false));
+  const notes     = document.getElementById('workout-notes').value.trim();
+
+  const entry = {
+    date: new Date().toISOString(),
+    exercises: todayChecked,
+    completed,
+    notes,
+    sets: exerciseSets,   // { exId: [{weight, reps}] }
+    volume: Math.round(totalVolume),
+    durationMins,
+    newPRs,               // list of exercise IDs where a PR was hit
+  };
+
+  workoutLog.unshift(entry);
+  save('wt_log', workoutLog);
+
+  // Clear today's data
+  todayChecked.forEach(id => { localStorage.removeItem('wt_sets_' + id); localStorage.removeItem('wt_checked_' + id); });
+  clearToday();
+
+  const prMsg = newPRs.length
+    ? `\n\n🏆 New PRs: ${newPRs.map(id => exercises.find(e=>e.id===id)?.name || id).join(', ')}!`
+    : '';
+  alert('Workout saved! Great job 💪' + prMsg);
+}
+
+// ─────────────────────────────────────────────
+// HISTORY TAB
+// ─────────────────────────────────────────────
+function renderLog() {
+  const div = document.getElementById('log-list');
+  if (!workoutLog.length) { div.innerHTML = '<div class="empty">No workouts logged yet. Go crush it!</div>'; return; }
+  div.innerHTML = workoutLog.map((entry, i) => {
+    const d     = new Date(entry.date);
+    const dateStr = d.toLocaleDateString('en-GB', {weekday:'short',day:'numeric',month:'short',year:'numeric'});
+    const names = entry.exercises.map(id => exercises.find(x=>x.id===id)?.name || id);
+    const prBadges = (entry.newPRs || []).map(id => {
+      const ex = exercises.find(x=>x.id===id);
+      return `<span class="pr-badge"><i class="ti ti-trophy" style="font-size:10px;"></i>${ex?ex.name:id}</span>`;
+    }).join(' ');
+    return `<div class="log-entry">
+      <div class="log-date">${dateStr}${entry.durationMins ? ' · ' + entry.durationMins + ' min' : ''}${entry.volume ? ' · ' + entry.volume.toLocaleString() + 'kg volume' : ''}</div>
+      <div class="log-exercises">${names.join(', ')}</div>
+      ${prBadges ? `<div style="margin-top:6px;">${prBadges}</div>` : ''}
+      ${entry.notes ? `<div class="log-note">"${entry.notes}"</div>` : ''}
+      <div style="margin-top:8px;"><button class="btn btn-danger btn-sm" onclick="deleteLog(${i})"><i class="ti ti-trash"></i> Delete</button></div>
+    </div>`;
+  }).join('');
+}
+
+function deleteLog(i) {
+  if (!confirm('Delete this workout?')) return;
+  workoutLog.splice(i, 1); save('wt_log', workoutLog); renderLog();
+}
+
+// ─────────────────────────────────────────────
+// PR TAB — shows best lifts per exercise, with history
+// ─────────────────────────────────────────────
+function renderPRs() {
+  // Populate filter dropdown with all exercises that have PR data
+  const filter = document.getElementById('pr-filter');
+  const ids    = Object.keys(prStore);
+  filter.innerHTML = '<option value="all">All exercises</option>' +
+    ids.map(id => { const ex = exercises.find(e=>e.id===id); return ex ? `<option value="${id}">${ex.name}</option>` : ''; }).join('');
+
+  const selectedId = filter.value;
+  const list = document.getElementById('pr-list');
+
+  if (!ids.length) { list.innerHTML = '<div class="empty">No PRs yet. Log workouts with weight to start tracking.</div>'; return; }
+
+  const show = selectedId === 'all' ? ids : [selectedId];
+
+  list.innerHTML = show.map(id => {
+    const ex   = exercises.find(e=>e.id===id);
+    const hist = prStore[id] || [];
+    if (!hist.length) return '';
+    const best = hist.reduce((b,x) => x.e1rm > b.e1rm ? x : b);
+    const d    = new Date(best.date).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
+
+    return `<div class="pr-row">
+      <div>
+        <div class="pr-row-name">${ex ? ex.name : id}</div>
+        <div style="font-size:12px;color:#555;">${d}</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="pr-row-val">${best.weight}kg × ${best.reps}</div>
+        <div style="font-size:12px;color:#666;">e1RM: ${best.e1rm}kg</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="showPRHistory('${id}')" style="margin-left:10px;"><i class="ti ti-history"></i></button>
+    </div>`;
+  }).join('') || '<div class="empty">No data for selection.</div>';
+}
+
+function showPRHistory(id) {
+  const ex   = exercises.find(e=>e.id===id);
+  const hist = (prStore[id] || []).slice().sort((a,b) => new Date(b.date)-new Date(a.date));
+  const card = document.getElementById('pr-history-card');
+  document.getElementById('pr-history-title').textContent = (ex ? ex.name : id) + ' · PR history';
+  document.getElementById('pr-history-list').innerHTML = hist.map(h => {
+    const d = new Date(h.date).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'});
+    return `<div class="pr-row">
+      <div style="font-size:13px;color:#777;">${d}</div>
+      <div class="pr-row-val">${h.weight}kg × ${h.reps} <span style="color:#666;font-size:12px;">(e1RM ${h.e1rm}kg)</span></div>
+    </div>`;
+  }).join('');
+  card.style.display = 'block';
+  card.scrollIntoView({behavior:'smooth'});
+}
+
+// ─────────────────────────────────────────────
+// RECAP HELPERS — utility functions used by weekly & monthly recap
+// ─────────────────────────────────────────────
+
+// Get workouts within a date range
+function logsInRange(start, end) {
+  return workoutLog.filter(e => {
+    const d = new Date(e.date);
+    return d >= start && d <= end;
+  });
+}
+
+// Calculate total volume (kg lifted) for a set of log entries
+function totalVolume(logs) {
+  return logs.reduce((sum, e) => sum + (e.volume || 0), 0);
+}
+
+// Count new PRs achieved within a set of log entries
+function countPRs(logs) {
+  return logs.reduce((sum, e) => sum + (e.newPRs || []).length, 0);
+}
+
+// Render a comparison row like "Workouts: 4 vs 3 (+1)"
+function vsRow(label, curr, prev, unit='') {
+  const diff  = curr - prev;
+  const cls   = diff > 0 ? 'vs-up' : diff < 0 ? 'vs-down' : 'vs-same';
+  const arrow = diff > 0 ? '▲' : diff < 0 ? '▼' : '→';
+  const sign  = diff > 0 ? '+' : '';
+  return `<div class="vs-row">
+    <span style="color:#666;flex:1;">${label}</span>
+    <span style="color:#ccc;">${curr}${unit}</span>
+    <span class="${cls}" style="font-size:12px;margin-left:8px;">${arrow} ${sign}${diff}${unit} vs prev</span>
+  </div>`;
+}
+
+// Find biggest lift improvements across all exercises between two periods
+function biggestImprovements(currLogs, prevLogs) {
+  const improvements = [];
+  Object.keys(prStore).forEach(id => {
+    const currDates = new Set(currLogs.map(e => e.date));
+    const prevDates = new Set(prevLogs.map(e => e.date));
+    const hist = prStore[id] || [];
+    const currBest = hist.filter(h => currDates.has(h.date)).reduce((b,x)=>!b||x.e1rm>b.e1rm?x:b, null);
+    const prevBest = hist.filter(h => prevDates.has(h.date)).reduce((b,x)=>!b||x.e1rm>b.e1rm?x:b, null);
+    if (currBest && prevBest && currBest.e1rm > prevBest.e1rm) {
+      improvements.push({ id, gain: Math.round((currBest.e1rm - prevBest.e1rm)*10)/10 });
+    }
+  });
+  return improvements.sort((a,b) => b.gain - a.gain).slice(0, 5);
+}
+
+// ─────────────────────────────────────────────
+// WEEKLY RECAP
+// Shows this week vs last week comparison
+// ─────────────────────────────────────────────
+function renderWeeklyRecap() {
+  const now       = new Date();
+  const dayOfWeek = now.getDay(); // 0=Sun
+  const monday    = new Date(now); monday.setDate(now.getDate() - ((dayOfWeek + 6) % 7)); monday.setHours(0,0,0,0);
+  const sunday    = new Date(monday); sunday.setDate(monday.getDate() + 6); sunday.setHours(23,59,59,999);
+  const prevMon   = new Date(monday); prevMon.setDate(monday.getDate() - 7);
+  const prevSun   = new Date(monday); prevSun.setDate(monday.getDate() - 1); prevSun.setHours(23,59,59,999);
+
+  const thisWeek = logsInRange(monday, sunday);
+  const lastWeek = logsInRange(prevMon, prevSun);
+
+  const thisVol  = totalVolume(thisWeek);
+  const lastVol  = totalVolume(lastWeek);
+  const thisPRs  = countPRs(thisWeek);
+  const lastPRs  = countPRs(lastWeek);
+  const imps     = biggestImprovements(thisWeek, lastWeek);
+
+  // Compute streak
+  let streak = 0, d = new Date();
+  const dates = workoutLog.map(e => new Date(e.date).toDateString());
+  for (let i = 0; i < 60; i++) {
+    if (dates.includes(d.toDateString())) streak++;
+    else if (i > 0) break;
+    d.setDate(d.getDate() - 1);
+  }
+
+  // Week days indicator (Mon–Sun dots)
+  const dayNames = ['M','T','W','T','F','S','S'];
+  const todayIdx = ((now.getDay() + 6) % 7);
+  const weekDots = dayNames.map((dn, i) => {
+    const day = new Date(monday); day.setDate(monday.getDate() + i);
+    const trained = dates.includes(day.toDateString());
+    const isToday = i === todayIdx;
+    const dotStyle = trained
+      ? 'background:#5e5ce6;color:#fff;'
+      : isToday ? 'border:1.5px solid #5e5ce6;color:#5e5ce6;'
+      : 'background:#242428;color:#444;';
+    return `<div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;${dotStyle}">${dn}</div>`;
+  }).join('');
+
+  const div = document.getElementById('recap-weekly');
+  div.innerHTML = `
+    <div class="recap-header">
+      <div class="recap-title">This week</div>
+      <div class="recap-sub">${monday.toLocaleDateString('en-GB',{day:'numeric',month:'short'})} – ${sunday.toLocaleDateString('en-GB',{day:'numeric',month:'short'})}</div>
+      ${streak ? `<div style="margin-top:8px;"><span class="streak-badge"><i class="ti ti-flame"></i> ${streak}-day streak</span></div>` : ''}
+    </div>
+
+    <div class="card" style="margin-top:0;">
+      <div class="card-title">Days trained</div>
+      <div style="display:flex;gap:8px;justify-content:center;">${weekDots}</div>
+    </div>
+
+    <div class="stats-grid" style="margin-bottom:14px;">
+      <div class="stat"><div class="stat-num">${thisWeek.length}</div><div class="stat-label">Workouts</div></div>
+      <div class="stat"><div class="stat-num">${thisPRs}</div><div class="stat-label">New PRs</div></div>
+      <div class="stat"><div class="stat-num">${thisVol ? (thisVol >= 1000 ? Math.round(thisVol/100)/10+'t' : thisVol+'kg') : '—'}</div><div class="stat-label">Volume</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Vs. last week</div>
+      ${vsRow('Workouts', thisWeek.length, lastWeek.length)}
+      ${vsRow('Volume', thisVol, lastVol, 'kg')}
+      ${vsRow('PRs', thisPRs, lastPRs)}
+    </div>
+
+    ${imps.length ? `
+    <div class="card">
+      <div class="card-title">Biggest improvements this week</div>
+      ${imps.map(im => {
+        const ex = exercises.find(e=>e.id===im.id);
+        return `<div class="improve-row">
+          <span style="font-size:14px;">${ex?ex.name:im.id}</span>
+          <span class="pr-badge"><i class="ti ti-arrow-up" style="font-size:10px;"></i>+${im.gain}kg e1RM</span>
+        </div>`;
+      }).join('')}
+    </div>` : ''}
+
+    ${thisPRs ? `
+    <div class="card">
+      <div class="card-title">PRs this week 🏆</div>
+      ${thisWeek.flatMap(e=>e.newPRs||[]).map(id=>{
+        const ex  = exercises.find(x=>x.id===id);
+        const pr  = (prStore[id]||[]).slice(-1)[0];
+        return pr ? `<div class="pr-row">
+          <div class="pr-row-name">${ex?ex.name:id}</div>
+          <div class="pr-row-val">${pr.weight}kg × ${pr.reps}</div>
+        </div>` : '';
+      }).join('')}
+    </div>` : `<div class="card"><div class="empty" style="padding:16px 0;">No PRs this week — keep pushing!</div></div>`}
+
+    ${!thisWeek.length ? `<div class="card"><div class="empty">No workouts logged this week yet. Time to get started!</div></div>` : ''}
+  `;
+}
+
+// ─────────────────────────────────────────────
+// MONTHLY RECAP
+// Same idea as weekly but scoped to the current calendar month
+// ─────────────────────────────────────────────
+function renderMonthlyRecap() {
+  const now      = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+  const prevStart  = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const prevEnd    = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
+
+  const thisMonth = logsInRange(monthStart, monthEnd);
+  const lastMonth = logsInRange(prevStart, prevEnd);
+
+  const thisVol   = totalVolume(thisMonth);
+  const lastVol   = totalVolume(lastMonth);
+  const thisPRs   = countPRs(thisMonth);
+  const lastPRs   = countPRs(lastMonth);
+  const imps      = biggestImprovements(thisMonth, lastMonth);
+
+  const avgDuration = thisMonth.length
+    ? Math.round(thisMonth.filter(e=>e.durationMins).reduce((s,e)=>s+e.durationMins,0) / (thisMonth.filter(e=>e.durationMins).length||1))
+    : 0;
+
+  // Find strongest lift progression for the month
+  let bestProgEx = null, bestProgGain = 0;
+  Object.keys(prStore).forEach(id => {
+    const hist = (prStore[id]||[]).filter(h => new Date(h.date) >= monthStart && new Date(h.date) <= monthEnd);
+    if (hist.length < 2) return;
+    const gain = Math.max(...hist.map(h=>h.e1rm)) - Math.min(...hist.map(h=>h.e1rm));
+    if (gain > bestProgGain) { bestProgGain = gain; bestProgEx = id; }
+  });
+
+  // Monthly volume bar chart (week by week)
+  const weekBars = [0,1,2,3].map(w => {
+    const ws = new Date(monthStart); ws.setDate(1 + w * 7);
+    const we = new Date(ws); we.setDate(ws.getDate() + 6);
+    return { label: `Wk ${w+1}`, vol: totalVolume(logsInRange(ws, we)) };
+  });
+  const maxBar = Math.max(...weekBars.map(b=>b.vol), 1);
+
+  const div = document.getElementById('recap-monthly');
+  div.innerHTML = `
+    <div class="recap-header">
+      <div class="recap-title">${now.toLocaleDateString('en-GB',{month:'long',year:'numeric'})}</div>
+      <div class="recap-sub">Monthly recap</div>
+    </div>
+
+    <div class="stats-grid" style="margin-bottom:14px;">
+      <div class="stat"><div class="stat-num">${thisMonth.length}</div><div class="stat-label">Workouts</div></div>
+      <div class="stat"><div class="stat-num">${thisPRs}</div><div class="stat-label">PRs hit</div></div>
+      <div class="stat"><div class="stat-num">${avgDuration || '—'}${avgDuration ? 'min' : ''}</div><div class="stat-label">Avg duration</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Volume by week (kg)</div>
+      ${weekBars.map(b => `
+        <div class="chart-bar-wrap">
+          <div class="chart-bar-label"><span>${b.label}</span><span>${b.vol.toLocaleString()}kg</span></div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${Math.round(b.vol/maxBar*100)}%;"></div></div>
+        </div>`).join('')}
+    </div>
+
+    <div class="card">
+      <div class="card-title">Vs. last month</div>
+      ${vsRow('Workouts', thisMonth.length, lastMonth.length)}
+      ${vsRow('Volume', thisVol, lastVol, 'kg')}
+      ${vsRow('PRs', thisPRs, lastPRs)}
+      ${avgDuration ? vsRow('Avg duration',
+        avgDuration,
+        lastMonth.length ? Math.round(lastMonth.filter(e=>e.durationMins).reduce((s,e)=>s+e.durationMins,0)/(lastMonth.filter(e=>e.durationMins).length||1)) : 0,
+        'min') : ''}
+    </div>
+
+    ${bestProgEx ? `
+    <div class="highlight-card gold">
+      <div class="card-title" style="color:#a07020;">Strongest progression</div>
+      <div style="font-size:16px;font-weight:500;color:#f5c842;">${exercises.find(e=>e.id===bestProgEx)?.name || bestProgEx}</div>
+      <div style="font-size:14px;color:#a07020;margin-top:4px;">+${Math.round(bestProgGain*10)/10}kg e1RM improvement this month</div>
+    </div>` : ''}
+
+    ${imps.length ? `
+    <div class="card">
+      <div class="card-title">Top lift improvements</div>
+      ${imps.map(im => {
+        const ex = exercises.find(e=>e.id===im.id);
+        return `<div class="improve-row">
+          <span style="font-size:14px;">${ex?ex.name:im.id}</span>
+          <span class="pr-badge"><i class="ti ti-arrow-up" style="font-size:10px;"></i>+${im.gain}kg e1RM</span>
+        </div>`;
+      }).join('')}
+    </div>` : ''}
+
+    ${thisPRs ? `
+    <div class="card">
+      <div class="card-title">All PRs this month 🏆</div>
+      ${thisMonth.flatMap(e=>e.newPRs||[]).map(id=>{
+        const ex = exercises.find(x=>x.id===id);
+        const pr = (prStore[id]||[]).slice(-1)[0];
+        return pr ? `<div class="pr-row">
+          <div class="pr-row-name">${ex?ex.name:id}</div>
+          <div class="pr-row-val">${pr.weight}kg × ${pr.reps}</div>
+        </div>` : '';
+      }).join('')}
+    </div>` : `<div class="card"><div class="empty">No PRs yet this month — keep building!</div></div>`}
+
+    ${!thisMonth.length ? '<div class="card"><div class="empty">No workouts this month yet.</div></div>' : ''}
+  `;
+}
+
+// ─────────────────────────────────────────────
+// STATS TAB — overall totals and muscle breakdown
+// ─────────────────────────────────────────────
+function renderStats() {
+  const total  = workoutLog.length;
+  const allEx  = workoutLog.flatMap(e=>e.exercises||[]);
+  const freq   = {};
+  allEx.forEach(id => { freq[id] = (freq[id]||0)+1; });
+  const topId  = Object.keys(freq).sort((a,b)=>freq[b]-freq[a])[0];
+  const topEx  = topId ? (exercises.find(e=>e.id===topId)?.name||topId) : '—';
+  const totalVol = workoutLog.reduce((s,e)=>s+(e.volume||0),0);
+  let streak = 0, d = new Date();
+  const dates = workoutLog.map(e=>new Date(e.date).toDateString());
+  for (let i=0;i<60;i++) { if (dates.includes(d.toDateString())) streak++; else if(i>0) break; d.setDate(d.getDate()-1); }
+
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat"><div class="stat-num">${total}</div><div class="stat-label">Total workouts</div></div>
+    <div class="stat"><div class="stat-num">${streak}</div><div class="stat-label">Day streak</div></div>
+    <div class="stat"><div class="stat-num">${totalVol>=1000?Math.round(totalVol/100)/10+'t':totalVol+'kg'}</div><div class="stat-label">Total volume</div></div>
+  `;
+
+  const muscle = {};
+  workoutLog.forEach(e => { (e.exercises||[]).forEach(id => { const ex=exercises.find(x=>x.id===id); if(ex) muscle[ex.muscle]=(muscle[ex.muscle]||0)+1; }); });
+  const sorted = Object.entries(muscle).sort((a,b)=>b[1]-a[1]);
+  const max    = sorted[0]?.[1]||1;
+
+  document.getElementById('muscle-section').innerHTML = sorted.length ? `
+    <div class="card-title" style="margin-bottom:12px;">Muscle group frequency</div>
+    ${sorted.map(([m,n])=>`
+      <div style="margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;">
+          <span class="tag ${m}">${m}</span><span style="color:#555;">${n}×</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" style="width:${Math.round(n/max*100)}%"></div></div>
+      </div>`).join('')}
+    <div style="font-size:13px;color:#555;margin-top:12px;">Favourite exercise: <span style="color:#999;">${topEx}</span></div>
+  ` : '';
+}
+
+// ─────────────────────────────────────────────
+// EXERCISES TAB — view and add custom exercises
+// ─────────────────────────────────────────────
+function renderLibrary() {
+  document.getElementById('exercise-library').innerHTML = exercises.map(e => `
+    <div class="check-item">
+      <div style="flex:1;"><span class="check-label">${e.name}</span>
+        <div class="ex-meta"><span class="tag ${e.muscle}">${e.muscle}</span>
+          ${(prStore[e.id]||[]).length ? `<span class="pr-badge" style="font-size:10px;"><i class="ti ti-trophy" style="font-size:9px;"></i>PR logged</span>` : ''}
+        </div>
+      </div>
+      ${e.custom ? `<button class="btn btn-danger btn-sm" onclick="deleteExercise('${e.id}')"><i class="ti ti-trash"></i></button>` : ''}
+    </div>`).join('');
+}
+
+function addCustomExercise() {
+  const name   = document.getElementById('new-ex-name').value.trim();
+  const muscle = document.getElementById('new-ex-muscle').value;
+  if (!name) return;
+  const id = 'custom-' + Date.now();
+  exercises.push({id, name, muscle, custom: true});
+  save('wt_exercises', exercises);
+  document.getElementById('new-ex-name').value = '';
+  renderLibrary();
+}
+
+function deleteExercise(id) {
+  exercises = exercises.filter(e=>e.id!==id);
+  save('wt_exercises', exercises);
+  renderLibrary();
+}
+
+function populateExerciseSelect() {
+  // Fill the "add exercise to today" dropdown
+  const sel = document.getElementById('add-exercise-select');
+  sel.innerHTML = '<option value="">-- Pick exercise --</option>' +
+    exercises.map(e=>`<option value="${e.id}">${e.name} (${e.muscle})</option>`).join('');
+
+  // Fill the template dropdown from userTemplates
+  const tplSel = document.getElementById('workout-template');
+  const current = tplSel.value;
+  tplSel.innerHTML = '<option value="">-- Choose a template --</option>' +
+    userTemplates.map(t => `<option value="${t.id}">${t.name} (${t.exercises.length} exercises)</option>`).join('');
+  tplSel.value = current;
+}
+
+// ─────────────────────────────────────────────
+// SETTINGS TAB — custom template builder
+//
+// A "template" is just an object like:
+//   { id: 'my-push', name: 'My push day', exercises: ['bench','ohp',...] }
+// They live in localStorage under 'wt_templates'.
+// ─────────────────────────────────────────────
+
+// Holds the exercise IDs being built in the editor right now
+let tplDraft = [];
+
+// Render the Settings tab: show editor + list of saved templates
+function renderSettings() {
+  renderSettingsTemplateList();
+  populateTplExerciseSelect();
+  renderTplDraftList();
+}
+
+// Fill the "Add exercise" dropdown inside the template editor
+function populateTplExerciseSelect() {
+  const sel = document.getElementById('tpl-add-exercise');
+  sel.innerHTML = '<option value="">-- Add exercise --</option>' +
+    exercises.map(e => `<option value="${e.id}">${e.name} (${e.muscle})</option>`).join('');
+}
+
+// Render the draft exercise list inside the editor
+function renderTplDraftList() {
+  const div = document.getElementById('tpl-exercise-list');
+  if (!tplDraft.length) {
+    div.innerHTML = '<div style="font-size:13px;color:#444;padding:12px;text-align:center;border:0.5px dashed #2e2e32;border-radius:8px;">No exercises yet — pick one from the dropdown below</div>';
+    return;
+  }
+  div.innerHTML = tplDraft.map((id, i) => {
+    const ex = exercises.find(e => e.id === id);
+    return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:#242428;border-radius:8px;margin-bottom:6px;">
+      <span style="font-size:13px;color:#555;min-width:18px;text-align:center;">${i+1}</span>
+      <div style="flex:1;">
+        <div style="font-size:14px;">${ex ? ex.name : id}</div>
+        ${ex ? `<span class="tag ${ex.muscle}" style="margin-top:3px;display:inline-block;">${ex.muscle}</span>` : ''}
+      </div>
+      <div style="display:flex;gap:4px;">
+        ${i > 0 ? `<button class="btn btn-ghost btn-sm" onclick="tplMoveUp(${i})" style="padding:4px 7px;" title="Move up"><i class="ti ti-arrow-up"></i></button>` : ''}
+        <button class="btn btn-danger btn-sm" onclick="tplRemoveExercise(${i})" style="padding:4px 7px;"><i class="ti ti-x"></i></button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// Add selected exercise to the draft (in the editor)
+function tplAddExercise() {
+  const sel = document.getElementById('tpl-add-exercise');
+  const id  = sel.value;
+  if (!id) return;
+  if (tplDraft.includes(id)) { alert('That exercise is already in the template.'); return; }
+  tplDraft.push(id);
+  sel.value = '';
+  renderTplDraftList();
+}
+
+// Remove an exercise from the draft by index
+function tplRemoveExercise(idx) {
+  tplDraft.splice(idx, 1);
+  renderTplDraftList();
+}
+
+// Move an exercise up one position in the draft
+function tplMoveUp(idx) {
+  if (idx === 0) return;
+  [tplDraft[idx - 1], tplDraft[idx]] = [tplDraft[idx], tplDraft[idx - 1]];
+  renderTplDraftList();
+}
+
+// Reset the editor to a blank "New template" state
+function tplStartNew() {
+  document.getElementById('editing-template-id').value = '';
+  document.getElementById('editor-card-title').innerHTML = '<i class="ti ti-template" style="font-size:13px;margin-right:4px;"></i> New template';
+  document.getElementById('tpl-name').value = '';
+  tplDraft = [];
+  renderTplDraftList();
+  document.getElementById('template-editor-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Cancel editing — reset without saving
+function tplCancelEdit() { tplStartNew(); }
+
+// Save (create or update) a template from the editor
+function tplSave() {
+  const name = document.getElementById('tpl-name').value.trim();
+  if (!name) { alert('Please give your template a name.'); return; }
+  if (!tplDraft.length) { alert('Add at least one exercise to the template.'); return; }
+  const editingId = document.getElementById('editing-template-id').value;
+  if (editingId) {
+    const idx = userTemplates.findIndex(t => t.id === editingId);
+    if (idx !== -1) userTemplates[idx] = { id: editingId, name, exercises: [...tplDraft] };
+  } else {
+    userTemplates.push({ id: 'tpl-' + Date.now(), name, exercises: [...tplDraft] });
+  }
+  save('wt_templates', userTemplates);
+  tplStartNew();
+  renderSettingsTemplateList();
+  populateExerciseSelect();
+}
+
+// Load a template into the editor for renaming / reordering
+function tplEdit(id) {
+  const tpl = userTemplates.find(t => t.id === id);
+  if (!tpl) return;
+  document.getElementById('editing-template-id').value = tpl.id;
+  document.getElementById('editor-card-title').innerHTML = '<i class="ti ti-edit" style="font-size:13px;margin-right:4px;"></i> Edit template';
+  document.getElementById('tpl-name').value = tpl.name;
+  tplDraft = [...tpl.exercises];
+  renderTplDraftList();
+  populateTplExerciseSelect();
+  document.getElementById('template-editor-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Delete a template with confirmation
+function tplDelete(id) {
+  const tpl = userTemplates.find(t => t.id === id);
+  if (!tpl) return;
+  if (!confirm(`Delete template "${tpl.name}"?`)) return;
+  userTemplates = userTemplates.filter(t => t.id !== id);
+  save('wt_templates', userTemplates);
+  renderSettingsTemplateList();
+  populateExerciseSelect();
+}
+
+// Add an exercise directly to an already-saved template (inline in the saved list)
+function tplInlineAdd(tplId) {
+  const sel = document.getElementById('inline-add-' + tplId);
+  const exId = sel.value;
+  if (!exId) return;
+  const tpl = userTemplates.find(t => t.id === tplId);
+  if (!tpl || tpl.exercises.includes(exId)) return;
+  tpl.exercises.push(exId);
+  save('wt_templates', userTemplates);
+  populateExerciseSelect();
+  renderSettingsTemplateList();
+}
+
+// Remove an exercise from an already-saved template (inline in the saved list)
+function tplRemoveExFromSaved(tplId, exId) {
+  const tpl = userTemplates.find(t => t.id === tplId);
+  if (!tpl) return;
+  tpl.exercises = tpl.exercises.filter(id => id !== exId);
+  save('wt_templates', userTemplates);
+  populateExerciseSelect();
+  renderSettingsTemplateList();
+}
+
+// Render the list of saved templates — each one shows its exercises with add/remove controls
+function renderSettingsTemplateList() {
+  const div = document.getElementById('settings-template-list');
+  if (!userTemplates.length) {
+    div.innerHTML = '<div class="empty">No templates yet — create one above!</div>';
+    return;
+  }
+  div.innerHTML = userTemplates.map(tpl => {
+    const exRowsHTML = tpl.exercises.map(id => {
+      const ex = exercises.find(e => e.id === id);
+      return ex ? `<div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:0.5px solid #2a2a2e;">
+        <div>
+          <span style="font-size:13px;color:#ccc;">${ex.name}</span>
+          <span class="tag ${ex.muscle}" style="margin-left:6px;">${ex.muscle}</span>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="tplRemoveExFromSaved('${tpl.id}','${id}')" style="padding:3px 7px;" title="Remove"><i class="ti ti-x"></i></button>
+      </div>` : '';
+    }).join('');
+
+    const available = exercises.filter(e => !tpl.exercises.includes(e.id));
+    const addRowHTML = available.length
+      ? `<div style="display:flex;gap:8px;margin-top:10px;">
+          <select id="inline-add-${tpl.id}" style="flex:1;font-size:13px;padding:6px 10px;">
+            <option value="">-- Add exercise to template --</option>
+            ${available.map(e => `<option value="${e.id}">${e.name} (${e.muscle})</option>`).join('')}
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="tplInlineAdd('${tpl.id}')"><i class="ti ti-plus"></i> Add</button>
+        </div>`
+      : `<div style="font-size:12px;color:#444;margin-top:8px;padding:6px 0;">All exercises already added.</div>`;
+
+    return `<div style="padding:14px 0;border-bottom:0.5px solid #242428;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;">
+        <div>
+          <div style="font-size:15px;font-weight:500;color:#e8e8e8;">${tpl.name}</div>
+          <div style="font-size:12px;color:#555;margin-top:2px;">${tpl.exercises.length} exercise${tpl.exercises.length===1?'':'s'}</div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" onclick="tplEdit('${tpl.id}')" title="Edit in builder"><i class="ti ti-edit"></i> Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="tplDelete('${tpl.id}')"><i class="ti ti-trash"></i></button>
+        </div>
+      </div>
+      <div style="background:#1e1e22;border-radius:8px;padding:10px 12px;">
+        ${exRowsHTML || '<div style="font-size:13px;color:#444;padding:4px 0;">No exercises yet</div>'}
+        ${addRowHTML}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─────────────────────────────────────────────
+// VIEW NAVIGATION SYSTEM
+// Four top-level views controlled by bottom nav.
+// Each view can have its own inner sub-tabs.
+// ─────────────────────────────────────────────
+
+// All view IDs and their matching nav button IDs
+const VIEWS = ['today', 'workout', 'progress', 'more'];
+
+function switchView(viewName) {
+  // Hide all views
+  VIEWS.forEach(v => {
+    const el = document.getElementById('view-' + v);
+    if (el) el.classList.remove('active');
+  });
+  // Show target view
+  const target = document.getElementById('view-' + viewName);
+  if (target) target.classList.add('active');
+
+  // Update bottom nav active state
+  VIEWS.forEach(v => {
+    const btn = document.getElementById('nav-' + v);
+    if (btn) btn.classList.toggle('active', v === viewName);
+  });
+
+  // Trigger renders for views that need fresh data
+  if (viewName === 'today')    renderToday();
+  if (viewName === 'workout')  renderLog();
+  if (viewName === 'progress') renderPRs();   // default progress sub-tab is PRs
+  if (viewName === 'more')     renderLibrary(); // default more sub-tab is exercises
+}
+
+// ── Progress view sub-tabs (PRs / Recap / Stats) ──
+function switchProgressTab(name, el) {
+  // Deactivate all progress sections
+  ['tab-prs','tab-recap','tab-stats'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+  // Deactivate all progress sub-tab buttons
+  document.querySelectorAll('#progress-tab-row .tab').forEach(t => t.classList.remove('active'));
+  // Activate selected
+  const target = document.getElementById('tab-' + name);
+  if (target) target.classList.add('active');
+  if (el) el.classList.add('active');
+
+  if (name === 'prs')    renderPRs();
+  if (name === 'recap')  renderWeeklyRecap();
+  if (name === 'stats')  renderStats();
+}
+
+// ── More view sub-sections (Exercises / Settings) ──
+function switchMoreSection(name) {
+  ['tab-exercises','tab-settings'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('active');
+  });
+  document.querySelectorAll('#more-tab-row .tab').forEach(t => t.classList.remove('active'));
+
+  const target = document.getElementById('tab-' + name);
+  if (target) target.classList.add('active');
+  const btn = document.getElementById('more-tab-' + name);
+  if (btn) btn.classList.add('active');
+
+  if (name === 'exercises') renderLibrary();
+  if (name === 'settings')  renderSettings();
+}
+
+// ─────────────────────────────────────────────
+// INTRO SCREEN
+// Only shown on first ever visit. Uses localStorage
+// key 'hasSeenIntro'. Fades out after 2.8s.
+// ─────────────────────────────────────────────
+function initIntroScreen() {
+  const intro = document.getElementById('intro-screen');
+  if (!intro) return;
+
+  const hasSeen = localStorage.getItem('hasSeenIntro');
+  if (hasSeen) {
+    // Already seen — remove immediately, no flash
+    intro.remove();
+    return;
+  }
+
+  // First visit — show for 2.8s then fade out
+  setTimeout(() => {
+    intro.classList.add('fade-out');
+    // Remove from DOM after the 0.6s fade transition completes
+    setTimeout(() => intro.remove(), 650);
+  }, 2800);
+
+  localStorage.setItem('hasSeenIntro', '1');
+}
+
+// ─────────────────────────────────────────────
+// STARTUP
+// ─────────────────────────────────────────────
+save('wt_session_start', Date.now());
+
+// Set today's date in the sub-header
+(function() {
+  const sub = document.getElementById('today-date-sub');
+  if (sub) {
+    sub.textContent = new Date().toLocaleDateString('en-GB', {
+      weekday: 'long', day: 'numeric', month: 'long'
+    });
+  }
+})();
+
+// Run intro screen logic (must be after DOM is ready, which it is here)
+initIntroScreen();
+
+// Boot into Today view
+switchView('today');
+</script>
+</body>
+</html>
